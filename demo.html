@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GOES Data Viewer — Event Gallery</title>
+<!--
+  GOES Data Viewer event gallery.
+  Standalone: open directly (file://) — links target the live deployment.
+  Sidecar: drop next to index.html in the web deploy (…/goes-suite/demo.html).
+  All links use the app's deep-link hash schema; all times UTC. Size chips
+  are measured from the NOAA Open Data archive listings, not estimated.
+-->
+<style>
+  :root{--bg:#0a101f;--card:#131c31;--card2:#0f1729;--ink:#e6edf6;--dim:#8fa0b8;
+    --line:#243149;--blue:#3b82f6;
+    --hurr:#38bdf8;--fire:#fb923c;--sev:#a3e635;--wint:#93c5fd;--rain:#34d399;--space:#c084fc;--feat:#3b82f6}
+  *{box-sizing:border-box}
+  body{margin:0;background:radial-gradient(1200px 500px at 50% -150px,#16233f 0%,var(--bg) 60%);
+    color:var(--ink);font:15px/1.5 -apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+  .wrap{max-width:1160px;margin:0 auto;padding:24px 20px 70px}
+  header{padding:36px 0 6px;text-align:center}
+  header h1{margin:0;font-size:34px;font-weight:800;letter-spacing:.3px}
+  header h1 b{background:linear-gradient(90deg,#60a5fa,#a78bfa);-webkit-background-clip:text;background-clip:text;color:transparent}
+  header p{color:var(--dim);margin:8px auto 0;max-width:64ch;font-size:14.5px}
+  .metaline{display:flex;gap:14px;justify-content:center;margin-top:12px;color:var(--dim);font-size:12.5px;flex-wrap:wrap}
+  .metaline span{background:#101a30;border:1px solid var(--line);border-radius:99px;padding:3px 12px}
+  details.how{max-width:840px;margin:16px auto 0;background:#101a30;border:1px solid var(--line);border-radius:9px;padding:10px 16px;color:var(--dim);font-size:13px}
+  details.how summary{cursor:pointer;color:var(--ink);font-weight:600;font-size:13.5px}
+  details.how p{margin:8px 0 4px}
+  .star{color:#fbbf24;font-weight:700}
+  section{margin-top:34px}
+  .sec-head{display:flex;align-items:baseline;gap:12px;border-left:4px solid var(--secc,var(--blue));padding-left:12px;margin-bottom:14px}
+  .sec-head h2{margin:0;font-size:20px}
+  .sec-head span{color:var(--dim);font-size:12.5px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(500px,1fr));gap:14px}
+  @media (max-width:560px){.grid{grid-template-columns:1fr}}
+  .card{background:linear-gradient(180deg,var(--card),var(--card2));border:1px solid var(--line);
+    border-top:3px solid var(--secc,var(--blue));border-radius:11px;padding:15px 17px 13px}
+  .card h3{margin:0 0 6px;font-size:16.5px}
+  .chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:9px}
+  .chip{font-size:11px;font-family:ui-monospace,Menlo,Consolas,monospace;color:var(--dim);
+    background:#0d1526;border:1px solid var(--line);border-radius:5px;padding:2px 8px}
+  .chip.cat{color:var(--secc,var(--blue));border-color:var(--secc,var(--blue));font-weight:700}
+  details.about{margin:2px 0 10px;font-size:13px;color:#c3cede}
+  details.about summary{cursor:pointer;color:var(--dim);font-size:12px;font-weight:600;letter-spacing:.3px;text-transform:uppercase}
+  details.about p{margin:7px 0 2px}
+  details.about .mn{color:var(--dim);font-size:12.5px}
+  .links{display:flex;flex-wrap:wrap;gap:7px}
+  .links a{display:flex;flex-direction:column;gap:1px;text-decoration:none;color:var(--ink);
+    background:#0d1526;border:1px solid #33415e;border-radius:8px;padding:7px 11px;min-width:120px;
+    transition:border-color .12s,transform .08s}
+  .links a:hover{border-color:var(--secc,var(--blue));transform:translateY(-1px)}
+  .links a.primary{border-color:var(--secc,var(--blue));background:#101c38}
+  .links a .l{font-size:13px;line-height:1.25}
+  .links a .f{color:var(--dim);font-size:10.5px;font-family:ui-monospace,Menlo,Consolas,monospace}
+  .links a.stackl{border-style:double;border-width:3px}
+  details.future{margin-top:34px;background:var(--card2);border:1px dashed var(--line);border-radius:11px;padding:12px 18px}
+  details.future summary{cursor:pointer;font-weight:700;font-size:15px}
+  details.future .fi{margin:12px 0;padding-left:12px;border-left:3px solid #475569}
+  details.future .fi b{display:block;margin-bottom:2px}
+  details.future .fi p{margin:2px 0;color:var(--dim);font-size:13px}
+  details.future code{background:#0d1526;border:1px solid var(--line);border-radius:4px;padding:1px 5px;font-size:12px;color:#a5b4fc}
+  footer{margin-top:44px;color:var(--dim);font-size:12.5px;border-top:1px solid var(--line);padding-top:14px;text-align:center}
+  footer code{background:#0d1526;border:1px solid var(--line);border-radius:4px;padding:1px 6px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>GOES <b>Data Viewer</b> — Event Gallery</h1>
+  <p>Notable severe-weather and space-weather events, each opening directly in the viewer with satellite,
+     product, sector, and time pre-selected. Data streams live from the NOAA Open Data archive.</p>
+  <div class="metaline">
+    <span>All times UTC</span><span>Size chips are measured, not estimated</span>
+    <span><span class="star">★</span> = meso sector verified on the event</span>
+  </div>
+  <details class="how"><summary>How this page works</summary>
+    <p><b>Loops vs frames.</b> Loop links open an animation over the event window; frame links open a single scene.
+       Loops stream while loading — playback starts before the download completes. <b>5-min cadence</b> links cover a
+       longer window at reduced frame rate for the same data budget class.</p>
+    <p><b><span class="star">★</span> Verified meso sectors.</b> GOES mesoscale sectors float. For each event the actual meso
+       files from that hour were read and each sector's center computed from its fixed-grid geometry; a star means that
+       sector was confirmed on (or tracking) the event. Where no meso was tasked, the card says so — use CONUS and zoom.</p>
+    <p><b>Composite links</b> (double border) open a multi-layer stack — e.g. fire detections over True Color — using the
+       viewer's stack deep-link format.</p>
+    <p><b>Sizes.</b> Every button's chip is the summed byte size of the exact file set that window resolves to in the
+       NOAA archive.</p>
+  </details>
+</header>
+<div id="sections"></div>
+
+<details class="future" id="future">
+  <summary>Ideas on deck — views the app can't link yet</summary>
+  <div class="fi"><b>Night blend + GLM lightning overlay — Quad-State outbreak</b>
+    <p>GLM layers aren't stack members yet, so the lightning-over-GeoColor composite can't be composed or linked.</p>
+    <p>Would show: <code>DayNightBlend (C) + GLM overlay · 2021-12-11 · 03:00–04:00</code></p></div>
+  <div class="fi"><b>Multi-wavelength SUVI composite</b>
+    <p>A 94/131/304 Å blend showing flare plasma across temperature regimes. No SUVI blend recipe exists yet
+       (same pattern as the ABI RGB composites would work).</p>
+    <p>Would show: <code>SUVI Fe093+Fe131+He303 · 2024-10-03 · 11:45–13:00</code></p></div>
+  <div class="fi"><b>Animated composites</b>
+    <p>Stack deep links restore a single co-temporal scene; a looped composite (fire glyphs marching across True Color)
+       needs stack animation.</p></div>
+</details>
+
+<footer>
+  <p>Deploy: drop this file next to <code>index.html</code> as <code>demo.html</code> — links resolve to that deployment.
+     Opened locally, links target the live site. Imagery: NOAA/NASA GOES-R Program via NOAA Open Data (AWS).</p>
+  <p id="basenote"></p>
+</footer>
+</div>
+<script>
+(function () {
+  var LIVE = 'https://coliveir-aer.github.io/goes-suite/';
+  var BASE = (location.protocol === 'file:') ? LIVE : './';
+  var DATA = [
+ {
+  "title": "Hurricanes",
+  "short": "Hurricane",
+  "sub": "Landfalls and rapid intensification",
+  "color": "var(--hurr)",
+  "events": [
+   {
+    "title": "Hurricane Michael — Category 5 landfall",
+    "date": "2018-10-10 · 17:30 UTC",
+    "sat": "GOES-16 East",
+    "blurb": "Michael intensified up to the moment of landfall at Mexico Beach, FL — the first Cat 5 to strike the U.S. since Andrew. The pinhole eye is crisp in 1-minute mesoscale imagery.",
+    "meso": "★ Meso-1 verified on the eye (center 1.2° from the landfall point at 17 UTC).",
+    "links": [
+     {
+      "label": "IR loop · CONUS",
+      "hash": "sat=G16&product=ABI-L2-CMIP&band=13&domain=C&t=range&date=2018-10-10&tstart=15:00&tend=18:00",
+      "f": "36 frames · 164 MB",
+      "primary": true
+     },
+     {
+      "label": "★ Visible · Meso-1 · 1-min",
+      "hash": "sat=G16&product=ABI-L2-CMIP&band=2&domain=M1&t=range&date=2018-10-10&tstart=17:20&tend=17:40",
+      "f": "40 frames · 229 MB",
+      "primary": true
+     },
+     {
+      "label": "★ True Color · Meso-1",
+      "hash": "sat=G16&product=ABI-L2-MCMIP-RGB-TrueColor&domain=M1&t=range&date=2018-10-10&tstart=17:20&tend=17:40",
+      "f": "40 frames · 222 MB"
+     },
+     {
+      "label": "★ IR · Meso-1 · 1-min (light)",
+      "hash": "sat=G16&product=ABI-L2-CMIP&band=13&domain=M1&t=range&date=2018-10-10&tstart=17:00&tend=18:00",
+      "f": "120 frames · 48 MB"
+     },
+     {
+      "label": "★ IR · Meso-1 · 5-min × 5 h",
+      "hash": "sat=G16&product=ABI-L2-CMIP&band=13&domain=M1&t=range&date=2018-10-10&tstart=15:00&tend=20:00&stride=5",
+      "f": "60 frames · 24 MB"
+     },
+     {
+      "label": "Landfall frame",
+      "hash": "sat=G16&product=ABI-L2-CMIP&band=13&domain=C&t=closest&date=2018-10-10&tmin=17:30",
+      "f": "1 frame · 4.6 MB"
+     }
+    ]
+   },
+   {
+    "title": "Hurricane Ida — Cat 4 into Louisiana",
+    "date": "2021-08-29 · 16:55 UTC",
+    "sat": "GOES-16 East",
+    "blurb": "Ida held Category-4 intensity through landfall at Port Fourchon on Katrina’s 16th anniversary, with a textbook clear eye.",
+    "meso": "★ Meso-1 verified on the eye (0.8° at 16 UTC).",
+    "links": [
+     {
+      "label": "IR loop · CONUS",
+      "hash": "sat=G16&product=ABI-L2-CMIP&band=13&domain=C&t=range&date=2021-08-29&tstart=14:00&tend=17:00",
+      "f": "36 frames · 160 MB",
+      "primary": true
+     },
+     {
+      "label": "★ Visible · Meso-1 · 1-min",
+      "hash": "sat=G16&product=ABI-L2-CMIP&band=2&domain=M1&t=range&date=2021-08-29&tstart=16:40&tend=17:10",
+      "f": "30 frames · 180 MB",
+      "primary": true
+     },
+     {
+      "label": "★ IR · Meso-1 · 1-min (light)",
+      "hash": "sat=G16&product=ABI-L2-CMIP&band=13&domain=M1&t=range&date=2021-08-29&tstart=16:00&tend=17:00",
+      "f": "60 frames · 24 MB"
+     },
+     {
+      "label": "★ IR · Meso-1 · 5-min × 5 h",
+      "hash": "sat=G16&product=ABI-L2-CMIP&band=13&domain=M1&t=range&date=2021-08-29&tstart=14:30&tend=19:30&stride=5",
+      "f": "60 frames · 24 MB"
+     },
+     {
+      "label": "Landfall frame",
+      "hash": "sat=G16&product=ABI-L2-CMIP&band=13&domain=C&t=closest&date=2021-08-29&tmin=16:55",
+      "f": "1 frame · 4.6 MB"
+     }
+    ]
+   },
+   {
+    "featured": true,
+    "title": "Hurricane Ian — Cat 4 into southwest Florida",
+    "date": "2022-09-28 · 19:05 UTC",
+    "sat": "GOES-16 East",
+    "blurb": "Ian’s enormous eye crossed Cayo Costa and crawled inland, driving catastrophic surge into Fort Myers. The meso sector was parked dead-center on the eye.",
+    "meso": "★ Meso-1 verified — sector center within 0.1° of the landfall point at 18 UTC.",
+    "links": [
+     {
+      "label": "★ Visible · Meso-1 · 1-min",
+      "hash": "sat=G16&product=ABI-L2-CMIP&band=2&domain=M1&t=range&date=2022-09-28&tstart=18:50&tend=19:10",
+      "f": "40 frames · 219 MB",
+      "primary": true
+     },
+     {
+      "label": "IR loop · CONUS",
+      "hash": "sat=G16&product=ABI-L2-CMIP&band=13&domain=C&t=range&date=2022-09-28&tstart=16:30&tend=19:30",
+      "f": "36 frames · 163 MB",
+      "primary": true
+     },
+     {
+      "label": "★ True Color · Meso-1",
+      "hash": "sat=G16&product=ABI-L2-MCMIP-RGB-TrueColor&domain=M1&t=range&date=2022-09-28&tstart=19:00&tend=19:20",
+      "f": "40 frames · 215 MB"
+     },
+     {
+      "label": "★ IR · Meso-1 · 1-min (light)",
+      "hash": "sat=G16&product=ABI-L2-CMIP&band=13&domain=M1&t=range&date=2022-09-28&tstart=18:30&tend=19:30",
+      "f": "120 frames · 47 MB"
+     },
+     {
+      "label": "★ IR · Meso-1 · 5-min × 5 h",
+      "hash": "sat=G16&product=ABI-L2-CMIP&band=13&domain=M1&t=range&date=2022-09-28&tstart=16:30&tend=21:30&stride=5",
+      "f": "60 frames · 24 MB"
+     },
+     {
+      "label": "Landfall frame",
+      "hash": "sat=G16&product=ABI-L2-CMIP&band=13&domain=C&t=closest&date=2022-09-28&tmin=19:05",
+      "f": "1 frame · 4.6 MB"
+     }
+    ]
+   },
+   {
+    "title": "Hurricane Milton — 897 mb, then Florida landfall",
+    "date": "2024-10-07 peak → 10-10 00:30 UTC",
+    "sat": "GOES-16 East",
+    "blurb": "One of the fastest Gulf intensification episodes ever observed: Milton bottomed near 897 mb with a pinhole eye on Oct 7, then struck Siesta Key late Oct 9.",
+    "meso": "★ Meso-2 verified on the pinhole eye during peak intensity (1.2° at 20 UTC Oct 7).",
+    "links": [
+     {
+      "label": "★ Peak visible · Meso-2 · 1-min",
+      "hash": "sat=G16&product=ABI-L2-CMIP&band=2&domain=M2&t=range&date=2024-10-07&tstart=20:00&tend=20:20",
+      "f": "20 frames · 98 MB",
+      "primary": true
+     },
+     {
+      "label": "★ IR · Meso-2 · 1-min (light)",
+      "hash": "sat=G16&product=ABI-L2-CMIP&band=13&domain=M2&t=range&date=2024-10-07&tstart=19:45&tend=20:45",
+      "f": "60 frames · 21 MB"
+     },
+     {
+      "label": "★ IR · Meso-2 · 5-min × 5 h",
+      "hash": "sat=G16&product=ABI-L2-CMIP&band=13&domain=M2&t=range&date=2024-10-07&tstart=18:00&tend=23:00&stride=5",
+      "f": "60 frames · 21 MB"
+     },
+     {
+      "label": "Peak-day IR · CONUS",
+      "hash": "sat=G16&product=ABI-L2-CMIP&band=13&domain=C&t=range&date=2024-10-07&tstart=17:30&tend=20:30",
+      "f": "36 frames · 144 MB"
+     },
+     {
+      "label": "Landfall IR · CONUS (crosses midnight)",
+      "hash": "sat=G16&product=ABI-L2-CMIP&band=13&domain=C&t=range&date=2024-10-10&tstart=23:00&tend=02:30",
+      "f": "42 frames · 162 MB",
+      "primary": true
+     },
+     {
+      "label": "Landfall frame",
+      "hash": "sat=G16&product=ABI-L2-CMIP&band=13&domain=C&t=closest&date=2024-10-10&tmin=00:30",
+      "f": "1 frame · 3.9 MB"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "title": "Wildfires",
+  "short": "Wildfire",
+  "sub": "Fire detections, Fire Temperature RGB, smoke plumes",
+  "color": "var(--fire)",
+  "events": [
+   {
+    "title": "Camp Fire — Paradise, California",
+    "date": "2018-11-08 · 14:32 UTC ignition",
+    "sat": "GOES-16 East",
+    "blurb": "California’s deadliest fire ran 8+ miles in its first hours. Fire/hot-spot detections bloom while the smoke plume pours across the Central Valley. The composite link opens fire glyphs layered over True Color.",
+    "meso": "No meso sector was over Northern California that afternoon (both G16 sectors verified elsewhere) — use CONUS and zoom.",
+    "links": [
+     {
+      "label": "Fire glyphs over True Color · composite",
+      "hash": "stack=1&m0=G16,ABI-L2-MCMIP-RGB-TrueColor,,,C,2018-11-08,19:00&m1=G16,ABI-L2-FDC,,,C,2018-11-08,19:00",
+      "f": "2 layers · 64 MB",
+      "primary": true,
+      "stack": true
+     },
+     {
+      "label": "Fire / Hot-Spot loop · CONUS",
+      "hash": "sat=G16&product=ABI-L2-FDC&domain=C&t=range&date=2018-11-08&tstart=15:00&tend=21:00",
+      "f": "72 frames · 54 MB",
+      "primary": true
+     },
+     {
+      "label": "Fire Temperature RGB frame",
+      "hash": "sat=G16&product=ABI-L2-MCMIP-RGB-FireTemperature&domain=C&t=closest&date=2018-11-08&tmin=18:30",
+      "f": "1 frame · 64 MB"
+     },
+     {
+      "label": "True Color smoke frame",
+      "hash": "sat=G16&product=ABI-L2-MCMIP-RGB-TrueColor&domain=C&t=closest&date=2018-11-08&tmin=19:00",
+      "f": "1 frame · 64 MB"
+     },
+     {
+      "label": "Shortwave-IR loop · CONUS",
+      "hash": "sat=G16&product=ABI-L2-CMIP&band=7&domain=C&t=range&date=2018-11-08&tstart=16:00&tend=19:00",
+      "f": "36 frames · 163 MB"
+     }
+    ]
+   },
+   {
+    "featured": true,
+    "title": "Los Angeles Firestorm — Palisades & Eaton",
+    "date": "2025-01-07 → 01-08",
+    "sat": "GOES-18 West",
+    "blurb": "Hurricane-force Santa Ana winds drove simultaneous overnight fire runs through LA neighborhoods. The night Fire Temperature RGB is striking, and the composite link layers fire detections over the night blend.",
+    "meso": "★ Meso-2 covered it, with a caveat: the sector sat centered over the Owens Valley, so LA is near its southern edge (4.2° from center, verified across Jan 7–8).",
+    "links": [
+     {
+      "label": "Fire glyphs over night blend · composite",
+      "hash": "stack=1&m0=G18,ABI-L2-MCMIP-RGB-DayNightBlend,,,C,2025-01-08,02:30&m1=G18,ABI-L2-FDC,,,C,2025-01-08,02:30",
+      "f": "2 layers · 44 MB",
+      "primary": true,
+      "stack": true
+     },
+     {
+      "label": "★ Fire Temp RGB · Meso-2 · 1-min",
+      "hash": "sat=G18&product=ABI-L2-MCMIP-RGB-FireTemperature&domain=M2&t=range&date=2025-01-08&tstart=02:00&tend=02:30",
+      "f": "30 frames · 93 MB",
+      "primary": true
+     },
+     {
+      "label": "★ Fire Temp RGB · Meso-2 · 5-min × 5 h",
+      "hash": "sat=G18&product=ABI-L2-MCMIP-RGB-FireTemperature&domain=M2&t=range&date=2025-01-08&tstart=00:00&tend=05:00&stride=5",
+      "f": "60 frames · 192 MB"
+     },
+     {
+      "label": "Fire / Hot-Spot loop · CONUS overnight",
+      "hash": "sat=G18&product=ABI-L2-FDC&domain=C&t=range&date=2025-01-08&tstart=00:00&tend=06:00",
+      "f": "72 frames · 16 MB"
+     },
+     {
+      "label": "★ Fire / Hot-Spot · Meso-2",
+      "hash": "sat=G18&product=ABI-L2-FDC&domain=M2&t=range&date=2025-01-08&tstart=02:00&tend=03:00",
+      "f": "60 frames · 7.8 MB"
+     },
+     {
+      "label": "★ Shortwave-IR · Meso-2",
+      "hash": "sat=G18&product=ABI-L2-CMIP&band=7&domain=M2&t=range&date=2025-01-08&tstart=02:00&tend=03:00",
+      "f": "60 frames · 20 MB"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "title": "Severe Storms & Tornado Outbreaks",
+  "short": "Severe",
+  "sub": "Derechos and nocturnal supercells — where GLM shines",
+  "color": "var(--sev)",
+  "events": [
+   {
+    "title": "August 2020 Midwest Derecho",
+    "date": "2020-08-10 · 14–21 UTC",
+    "sat": "GOES-16 East",
+    "blurb": "A 770-mile derecho with 100+ mph winds flattened a third of Iowa’s crops and hit Cedar Rapids head-on. Meso-1 was repositioned to track the bowing storm east.",
+    "meso": "★ Meso-1 verified tracking the derecho (over the Illinois/Indiana segment by 17 UTC).",
+    "links": [
+     {
+      "label": "IR loop · CONUS",
+      "hash": "sat=G16&product=ABI-L2-CMIP&band=13&domain=C&t=range&date=2020-08-10&tstart=15:30&tend=18:30",
+      "f": "36 frames · 161 MB",
+      "primary": true
+     },
+     {
+      "label": "★ Visible · Meso-1 · 1-min",
+      "hash": "sat=G16&product=ABI-L2-CMIP&band=2&domain=M1&t=range&date=2020-08-10&tstart=16:45&tend=17:15",
+      "f": "30 frames · 171 MB",
+      "primary": true
+     },
+     {
+      "label": "★ IR · Meso-1 · 1-min (light)",
+      "hash": "sat=G16&product=ABI-L2-CMIP&band=13&domain=M1&t=range&date=2020-08-10&tstart=16:30&tend=17:30",
+      "f": "60 frames · 23 MB"
+     },
+     {
+      "label": "★ IR · Meso-1 · 5-min × 5 h",
+      "hash": "sat=G16&product=ABI-L2-CMIP&band=13&domain=M1&t=range&date=2020-08-10&tstart=14:30&tend=19:30&stride=5",
+      "f": "60 frames · 22 MB"
+     },
+     {
+      "label": "GLM lightning · Full Disk · 20-s",
+      "hash": "sat=G16&product=GLM-L2-LCFA&domain=F&t=range&date=2020-08-10&tstart=17:00&tend=17:15",
+      "f": "46 frames · 12 MB"
+     }
+    ]
+   },
+   {
+    "featured": true,
+    "title": "Quad-State Tornado Outbreak — Mayfield, KY",
+    "date": "2021-12-10→11 · ~03:27 UTC",
+    "sat": "GOES-16 East",
+    "blurb": "A December-night outbreak spawned a violent long-track tornado across four states, destroying Mayfield, Kentucky around 03:30 UTC. At night the story is cloud-top IR plus the relentless GLM lightning signature.",
+    "meso": "★ Meso-1 verified on the supercell (1.3° at 03 UTC).",
+    "links": [
+     {
+      "label": "★ IR · Meso-1 · 1-min",
+      "hash": "sat=G16&product=ABI-L2-CMIP&band=13&domain=M1&t=range&date=2021-12-11&tstart=03:00&tend=04:00",
+      "f": "60 frames · 22 MB",
+      "primary": true
+     },
+     {
+      "label": "GLM lightning · Full Disk · 20-s",
+      "hash": "sat=G16&product=GLM-L2-LCFA&domain=F&t=range&date=2021-12-11&tstart=03:20&tend=03:35",
+      "f": "46 frames · 21 MB",
+      "primary": true
+     },
+     {
+      "label": "★ IR · Meso-1 · 5-min × 5 h",
+      "hash": "sat=G16&product=ABI-L2-CMIP&band=13&domain=M1&t=range&date=2021-12-11&tstart=01:00&tend=06:00&stride=5",
+      "f": "60 frames · 22 MB"
+     },
+     {
+      "label": "IR loop · CONUS",
+      "hash": "sat=G16&product=ABI-L2-CMIP&band=13&domain=C&t=range&date=2021-12-11&tstart=00:30&tend=04:00",
+      "f": "42 frames · 181 MB"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "title": "Winter Storms",
+  "short": "Winter",
+  "sub": "Arctic outbreaks and the aftermath from space",
+  "color": "var(--wint)",
+  "events": [
+   {
+    "title": "Winter Storm Uri — the Texas freeze",
+    "date": "2021-02-15 → 02-16",
+    "sat": "GOES-16 East",
+    "blurb": "The February 2021 arctic outbreak iced all of Texas and collapsed its grid. Watch the storm sweep through, then see the whole state blanketed white the next afternoon. The equirect link opens the storm on a flat continental map.",
+    "meso": "Continental-scale story — CONUS is the view.",
+    "links": [
+     {
+      "label": "IR loop · CONUS (storm)",
+      "hash": "sat=G16&product=ABI-L2-CMIP&band=13&domain=C&t=range&date=2021-02-15&tstart=06:00&tend=10:00",
+      "f": "48 frames · 204 MB",
+      "primary": true
+     },
+     {
+      "label": "Equirect map projection · frame",
+      "hash": "stack=1&proj=eqc&m0=G16,ABI-L2-CMIP,13,,C,2021-02-15,09:00",
+      "f": "1 layer · 4.2 MB",
+      "stack": true
+     },
+     {
+      "label": "Snow-covered Texas · True Color frame",
+      "hash": "sat=G16&product=ABI-L2-MCMIP-RGB-TrueColor&domain=C&t=closest&date=2021-02-16&tmin=18:00",
+      "f": "1 frame · 64 MB",
+      "primary": true
+     },
+     {
+      "label": "Day Cloud Phase frame (ice vs. water)",
+      "hash": "sat=G16&product=ABI-L2-MCMIP-RGB-DayCloudPhase&domain=C&t=closest&date=2021-02-16&tmin=18:00",
+      "f": "1 frame · 64 MB"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "title": "Flash Floods & Major Rain",
+  "short": "Flood",
+  "sub": "Training convection and mesoscale rain machines",
+  "color": "var(--rain)",
+  "events": [
+   {
+    "title": "Texas Hill Country Flash Flood — Guadalupe River",
+    "date": "2025-07-04 · 09–12 UTC",
+    "sat": "GOES-19 East",
+    "blurb": "A nearly stationary overnight MCS trained over the Hill Country on July 4th; the Guadalupe rose over 25 feet in under an hour near Kerrville before dawn.",
+    "meso": "No meso sector was over the Hill Country that night (verified: M1 offshore Atlantic, M2 over Iowa) — use CONUS and zoom to Kerr County.",
+    "links": [
+     {
+      "label": "IR loop · CONUS (overnight MCS)",
+      "hash": "sat=G19&product=ABI-L2-CMIP&band=13&domain=C&t=range&date=2025-07-04&tstart=06:30&tend=10:30",
+      "f": "48 frames · 187 MB",
+      "primary": true
+     },
+     {
+      "label": "GLM lightning · Full Disk · 20-s",
+      "hash": "sat=G19&product=GLM-L2-LCFA&domain=F&t=range&date=2025-07-04&tstart=08:00&tend=08:15",
+      "f": "46 frames · 23 MB"
+     },
+     {
+      "label": "Peak frame · IR",
+      "hash": "sat=G19&product=ABI-L2-CMIP&band=13&domain=C&t=closest&date=2025-07-04&tmin=09:00",
+      "f": "1 frame · 3.9 MB"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "title": "Space Weather",
+  "short": "Space Wx",
+  "sub": "The Sun from GOES — SUVI imagery, X-ray & magnetometer telemetry",
+  "color": "var(--space)",
+  "events": [
+   {
+    "featured": true,
+    "title": "X9.0 Solar Flare — biggest of Solar Cycle 25",
+    "date": "2024-10-03 · 12:18 UTC",
+    "sat": "GOES-16 SUVI / EXIS",
+    "blurb": "Active Region 3842 unleashed an X9.0 — the strongest flare of the cycle. The 131 Å channel shows the flare ribbon saturate; the XRS time series shows the clean X-class spike.",
+    "meso": null,
+    "links": [
+     {
+      "label": "SUVI 131 Å flare loop",
+      "hash": "sat=G16&product=SUVI-L1b-Fe131&t=range&date=2024-10-03&tstart=11:45&tend=13:00",
+      "f": "38 frames · 122 MB",
+      "primary": true
+     },
+     {
+      "label": "XRS X-ray flux · time series",
+      "hash": "sat=G16&product=EXIS-L1b-SFXR&t=range&date=2024-10-03&tstart=11:00&tend=14:00",
+      "f": "360 frames · 62 MB",
+      "primary": true
+     },
+     {
+      "label": "SUVI 304 Å loop",
+      "hash": "sat=G16&product=SUVI-L1b-He303&t=range&date=2024-10-03&tstart=12:00&tend=12:40",
+      "f": "38 frames · 126 MB"
+     }
+    ]
+   },
+   {
+    "title": "The Gannon Superstorm — May 2024",
+    "date": "2024-05-10→11 · X5.8 01:23 UTC",
+    "sat": "GOES-16 SUVI / EXIS / MAG",
+    "blurb": "The strongest geomagnetic storm since 2003: CMEs from AR3664 pushed aurora into the deep South. Watch the X5.8 erupt in EUV and the geostationary field swing wildly as the storm arrives.",
+    "meso": null,
+    "links": [
+     {
+      "label": "SUVI 304 Å — the X5.8 erupting",
+      "hash": "sat=G16&product=SUVI-L1b-He303&t=range&date=2024-05-11&tstart=01:05&tend=01:45",
+      "f": "40 frames · 198 MB",
+      "primary": true
+     },
+     {
+      "label": "Magnetometer · storm-time swings",
+      "hash": "sat=G16&product=MAG-L1b-GEOF&t=range&date=2024-05-11&tstart=00:00&tend=04:00",
+      "f": "241 frames · 266 MB",
+      "primary": true
+     },
+     {
+      "label": "SUVI 171 Å — AR3664 on May 10",
+      "hash": "sat=G16&product=SUVI-L1b-Fe171&t=range&date=2024-05-10&tstart=16:30&tend=17:30",
+      "f": "30 frames · 149 MB"
+     },
+     {
+      "label": "XRS around the X5.8",
+      "hash": "sat=G16&product=EXIS-L1b-SFXR&t=range&date=2024-05-11&tstart=00:30&tend=02:30",
+      "f": "240 frames · 55 MB"
+     }
+    ]
+   }
+  ]
+ }
+];
+  function el(t,c,h){var e=document.createElement(t);if(c)e.className=c;if(h!=null)e.innerHTML=h;return e}
+  function stars(s){return s.replace(/\u2605/g,'<span class="star">\u2605</span>')}
+  function card(ev, color, catName){
+    var c = el('div','card'); c.style.setProperty('--secc', color);
+    c.appendChild(el('h3',null,stars(ev.title)));
+    var ch = el('div','chips');
+    ch.appendChild(el('span','chip',ev.date));
+    ch.appendChild(el('span','chip',ev.sat));
+    if(catName) ch.appendChild(el('span','chip cat',catName));
+    c.appendChild(ch);
+    var d = el('details','about');
+    d.appendChild(el('summary',null,'About this event'));
+    d.appendChild(el('p',null,ev.blurb));
+    if(ev.meso) d.appendChild(el('p','mn',stars(ev.meso)));
+    c.appendChild(d);
+    var row = el('div','links');
+    ev.links.forEach(function(l){
+      var a = el('a',(l.primary?'primary ':'')+(l.stack?'stackl':''));
+      a.href = BASE + '#' + l.hash;
+      a.appendChild(el('span','l',stars(l.label)));
+      a.appendChild(el('span','f',l.f||''));
+      row.appendChild(a);
+    });
+    c.appendChild(row);
+    return c;
+  }
+  var root = document.getElementById('sections');
+  // Featured strip
+  var feats = [];
+  DATA.forEach(function(sec){ sec.events.forEach(function(ev){ if(ev.featured) feats.push([ev,sec.color,sec.short]); }); });
+  if(feats.length){
+    var fs = el('section'); fs.style.setProperty('--secc','var(--feat)');
+    var fh = el('div','sec-head'); fh.appendChild(el('h2',null,'Featured'));
+    fh.appendChild(el('span',null,'Start here — a cross-section of what the viewer can do'));
+    fs.appendChild(fh);
+    var fg = el('div','grid');
+    feats.forEach(function(f){ fg.appendChild(card(f[0],f[1],f[2])); });
+    fs.appendChild(fg); root.appendChild(fs);
+  }
+  DATA.forEach(function(sec){
+    var evs = sec.events.filter(function(e){return !e.featured});
+    if(!evs.length) return;
+    var s = el('section'); s.style.setProperty('--secc',sec.color);
+    var h = el('div','sec-head'); h.appendChild(el('h2',null,sec.title));
+    h.appendChild(el('span',null,sec.sub)); s.appendChild(h);
+    var g = el('div','grid');
+    evs.forEach(function(ev){ g.appendChild(card(ev,sec.color,null)); });
+    s.appendChild(g); root.appendChild(s);
+  });
+  document.getElementById('basenote').innerHTML =
+    'Linking to: <code>' + (BASE==='./' ? location.href.replace(/demo\.html.*$/,'') : LIVE) + '</code>';
+})();
+</script>
+<noscript><p style="color:#f87171;padding:20px">Enable JavaScript to see the event gallery.</p></noscript>
+</body>
+</html>
